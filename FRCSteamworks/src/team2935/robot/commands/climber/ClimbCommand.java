@@ -1,33 +1,37 @@
-package team2935.robot.commands.shooter;
+package team2935.robot.commands.climber;
 
 import edu.wpi.first.wpilibj.command.Command;
 import team2935.robot.Robot;
 
-public class ShootFuelCommand extends Command {
-	private boolean speedUp; 
-    public ShootFuelCommand() {
-        requires(Robot.shooterSubsystem);
+public class ClimbCommand extends Command {
+	
+	enum ButtonState { PRESSED, RELEASED };
+	
+	private ButtonState climbButton = ButtonState.RELEASED;
+	
+    public ClimbCommand() {
+       requires(Robot.climberSubsystem);
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	speedUp = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	boolean shootFuel = Robot.oi.shootFuel();
-    	if(shootFuel && !speedUp){
-    		Robot.shooterSubsystem.actuateShooter(1.0);
-    		speedUp = true;
-    		return;
-    	}else if(shootFuel && speedUp){
-    		Robot.shooterSubsystem.actuateRegulator(-1.0);
-    	}else{
-    		speedUp = false;
-    		Robot.shooterSubsystem.actuateRegulator(0);
-    		Robot.shooterSubsystem.actuateShooter(0);
-    	}
+    	switch(climbButton){
+		case RELEASED:
+			if(Robot.oi.startClimb()){
+				Robot.climberSubsystem.actuateClimb(-1.0);
+				climbButton = ButtonState.PRESSED;
+	    		break;
+			}	
+		case PRESSED:
+			if (!Robot.oi.startClimb()) {
+    			climbButton = ButtonState.RELEASED;
+    		}
+    		break;
+	}
     }
 
     // Make this return true when this Command no longer needs to run execute()

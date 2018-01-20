@@ -1,37 +1,32 @@
-package team2935.robot.commands.shooter;
+package team2935.robot.commands.auto;
 
 import edu.wpi.first.wpilibj.command.Command;
 import team2935.robot.Robot;
+import team2935.robot.subsystems.GearSubsystem.States;
 
-public class ShootFuelCommand extends Command {
-	private boolean speedUp; 
-    public ShootFuelCommand() {
-        requires(Robot.shooterSubsystem);
+/**
+ *
+ */
+public class AutoCloseGear extends Command {
+	double timeout;
+    public AutoCloseGear(double timeout) {
+        requires(Robot.gearSubsystem);
+        this.timeout = timeout;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	speedUp = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	boolean shootFuel = Robot.oi.shootFuel();
-    	if(shootFuel && !speedUp){
-    		Robot.shooterSubsystem.actuateShooter(1.0);
-    		speedUp = true;
-    		return;
-    	}else if(shootFuel && speedUp){
-    		Robot.shooterSubsystem.actuateRegulator(-1.0);
-    	}else{
-    		speedUp = false;
-    		Robot.shooterSubsystem.actuateRegulator(0);
-    		Robot.shooterSubsystem.actuateShooter(0);
-    	}
+    	Robot.gearSubsystem.closeClaw();
+    	Robot.gearSubsystem.clawState = States.CLAW_CLOSED;
     }
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
+        if(timeSinceInitialized() >= timeout){return true;}
         return false;
     }
 

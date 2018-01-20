@@ -1,27 +1,32 @@
-package team2935.robot.commands.shooter;
+package team2935.robot.commands.auto;
 
 import edu.wpi.first.wpilibj.command.Command;
 import team2935.robot.Robot;
 
-public class ShootFuelCommand extends Command {
-	private boolean speedUp; 
-    public ShootFuelCommand() {
+/**
+ *
+ */
+public class AutoShoot extends Command {
+	
+	private boolean speedUp;
+	double timeout;
+
+    public AutoShoot(double timeout) {
         requires(Robot.shooterSubsystem);
+        this.timeout = timeout;
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	speedUp = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	boolean shootFuel = Robot.oi.shootFuel();
-    	if(shootFuel && !speedUp){
+    	if(!speedUp){
     		Robot.shooterSubsystem.actuateShooter(1.0);
     		speedUp = true;
     		return;
-    	}else if(shootFuel && speedUp){
+    	}else if(speedUp){
     		Robot.shooterSubsystem.actuateRegulator(-1.0);
     	}else{
     		speedUp = false;
@@ -32,6 +37,7 @@ public class ShootFuelCommand extends Command {
 
     // Make this return true when this Command no longer needs to run execute()
     protected boolean isFinished() {
+    	if(timeSinceInitialized() >= timeout){return true;}
         return false;
     }
 

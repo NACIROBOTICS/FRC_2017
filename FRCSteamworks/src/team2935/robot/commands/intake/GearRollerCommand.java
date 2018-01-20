@@ -1,32 +1,28 @@
-package team2935.robot.commands.shooter;
+package team2935.robot.commands.intake;
 
 import edu.wpi.first.wpilibj.command.Command;
 import team2935.robot.Robot;
 
-public class ShootFuelCommand extends Command {
-	private boolean speedUp; 
-    public ShootFuelCommand() {
-        requires(Robot.shooterSubsystem);
+public class GearRollerCommand extends Command {
+
+    public GearRollerCommand() {
+        requires(Robot.intakeSubsystem);
     }
 
     // Called just before this Command runs the first time
     protected void initialize() {
-    	speedUp = false;
     }
 
     // Called repeatedly when this Command is scheduled to run
     protected void execute() {
-    	boolean shootFuel = Robot.oi.shootFuel();
-    	if(shootFuel && !speedUp){
-    		Robot.shooterSubsystem.actuateShooter(1.0);
-    		speedUp = true;
-    		return;
-    	}else if(shootFuel && speedUp){
-    		Robot.shooterSubsystem.actuateRegulator(-1.0);
+    	boolean intakeGear = Robot.oi.intakeGear();
+    	boolean outtakeGear = Robot.oi.outtakeGear();
+    	if(intakeGear){
+    		Robot.intakeSubsystem.runIntake(0.5);
+    	}else if(outtakeGear){
+    		Robot.intakeSubsystem.runIntake(-0.5);
     	}else{
-    		speedUp = false;
-    		Robot.shooterSubsystem.actuateRegulator(0);
-    		Robot.shooterSubsystem.actuateShooter(0);
+    		Robot.intakeSubsystem.runIntake(0);
     	}
     }
 

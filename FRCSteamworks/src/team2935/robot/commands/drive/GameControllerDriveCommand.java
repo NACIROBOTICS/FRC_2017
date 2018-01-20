@@ -2,9 +2,18 @@ package team2935.robot.commands.drive;
 
 import edu.wpi.first.wpilibj.command.Command;
 import team2935.robot.Robot;
+import team2935.robot.RobotConst;
+import team2935.robot.subsystems.ChassisSubsystem.States;
 
 
 public class GameControllerDriveCommand extends Command {
+	
+	enum ButtonState { PRESSED, RELEASED };
+	
+	public ButtonState shiftState = ButtonState.RELEASED;
+	public ButtonState toggleDirectionButton = ButtonState.RELEASED;
+	public States toggleDirectionState = States.OFF;
+
 	public GameControllerDriveCommand() {
 		requires(Robot.chassisSubsystem);
 	}
@@ -17,28 +26,30 @@ public class GameControllerDriveCommand extends Command {
 	// Called repeatedly when this Command is scheduled to run
 	@Override
 	protected void execute() {
-		double speed = Robot.oi.getDriveSpeed();
-		double turn = Robot.oi.getTurnSpeed();
-		if(Math.abs(turn) < 0.05 && Math.abs(speed)> 0.05){
-			//Robot.chassisSubsystem.speedController(speed);
-			Robot.chassisSubsystem.setAllMotorSpeeds(speed);
+		double speed,turn;
+		double joystickDriveSpeedInput = Robot.oi.getDriveSpeed(); 
+		double joystickTurnSpeedInput = Robot.oi.getTurnSpeed(); 
+		
+		if(Robot.oi.shifterEngaged()){
+			Robot.chassisSubsystem.shiftHigh();
 		}else{
-			if(Math.abs(speed) > 0.05 && turn > 0.05){
-				Robot.chassisSubsystem.setDifferentMotorSpeeds(speed, 0);
-			}else if(Math.abs(speed) > 0.05 && turn < 0.05){
-				Robot.chassisSubsystem.setDifferentMotorSpeeds(0, speed);
-			}else{
-				Robot.chassisSubsystem.setDifferentMotorSpeeds(turn, -turn);
-			}
+			Robot.chassisSubsystem.shiftLow();
+		}	
+		if(Math.abs(joystickTurnSpeedInput) > RobotConst.CONTROLLER_TURN_THRESHOLD){
+			Robot.chassisSubsystem.setDifferentMotorSpeeds(-joystickTurnSpeedInput, joystickTurnSpeedInput);
+		}else if(Math.abs(joystickDriveSpeedInput)>RobotConst.CONTROLLER_DRIVE_THRESHOLD){
+			Robot.chassisSubsystem.setAllMotorSpeeds(joystickDriveSpeedInput);
+		}else{
+			Robot.chassisSubsystem.setAllMotorSpeeds(0);
 		}
 	}
 
 	// Make this return true when this Command no longer needs to run execute()
 	@Override
 	protected boolean isFinished() {
+		Robot.chassisSubsystem.prev_distance = (int)Robot.chassisSubsystem.getEncoderDistance();
 		return false;
 	}
-
 	// Called once after isFinished returns true
 	@Override
 	protected void end() {
